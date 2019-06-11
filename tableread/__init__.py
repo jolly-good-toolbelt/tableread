@@ -94,6 +94,16 @@ class SimpleRSTTable(BaseRSTDataObject):
     data_format = list
 
     def __init__(self, divider_row, header, rows):
+        """
+        Build a table from the text string parts.
+
+        Args:
+            divider_row (str): the row above or below the table headers,
+                consisting solely of "=" and spaces,
+                that delineates the column boundaries.
+            header (str): the column header row
+            rows (List[str]): the rows within the table containing data
+        """
         super(SimpleRSTTable, self).__init__()
         self._header = header
         self._rows = rows
