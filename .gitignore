@@ -1,5 +1,3 @@
-.mypy_cache/
 docs/
 _docs/
-artifactory_updater.egg-info/
 dist/
