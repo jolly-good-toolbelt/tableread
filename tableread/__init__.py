@@ -1,10 +1,9 @@
+"""Tableread package to read a text file table into a Python object."""
+
 import os
 from collections import OrderedDict
 
-try:
-    from itertools import filterfalse
-except ImportError:
-    from itertools import ifilterfalse as filterfalse
+from itertools import filterfalse
 from operator import attrgetter
 
 import attr
@@ -15,6 +14,18 @@ def _safe_name(name):
 
 
 def get_specific_attr_matcher(key, value):
+    """
+    Check if a given attribute value matches the expected value.
+
+    Args:
+        key (str): the name of the attribute to check
+        value (str): the expected string value
+
+    Returns:
+        function: a checker that will accept an object
+        and return True if the attribute value matches, or False if not.
+
+    """
     return lambda x: getattr(x, key).lower() == value.lower()
 
 
@@ -29,6 +40,7 @@ def safe_list_index(a_list, index_value, default=None):
 
     Returns:
         any: the value at the list index position or the default
+
     """
     if index_value < 0:
         return default
@@ -39,6 +51,8 @@ def safe_list_index(a_list, index_value, default=None):
 
 
 class BaseRSTDataObject(object):
+    """Base Class for RST Table Data handling."""
+
     column_divider_char = " "
     header_divider = "="
     # The full set of potential ReStructuredText section markers is sourced from
@@ -52,13 +66,16 @@ class BaseRSTDataObject(object):
         self.data = self.data_format()
 
     def __len__(self):
+        """Get the length of the underlying data."""
         return len(self.data)
 
     def __iter__(self):
+        """Iterate over underlying data."""
         for data in self.data:
             yield data
 
     def __getitem__(self, key):
+        """Get the value of the given key from the data."""
         return self.data[key]
 
     def _is_divider_row(self, row):
@@ -72,6 +89,8 @@ class BaseRSTDataObject(object):
 
 
 class SimpleRSTTable(BaseRSTDataObject):
+    """Represent a single table from a RST file."""
+
     data_format = list
 
     def __init__(self, divider_row, header, rows):
@@ -84,6 +103,7 @@ class SimpleRSTTable(BaseRSTDataObject):
 
     @classmethod
     def from_data(cls, data):
+        """Given data, build a SimpleRSTTable object."""
         table = cls.__new__(cls)
         table.data = list(data)
         return table
@@ -149,9 +169,13 @@ class SimpleRSTTable(BaseRSTDataObject):
 
     def matches_all(self, **kwargs):
         """
+        Filter data for a positive match to conditions.
+
         Given a set of key/value filters,
-        returns a new TableRead object with the filtered data, that can be iterated over.
-        Kwarg values may be a simple value (str, int) or a function that returns a boolean.
+        returns a new TableRead object with the filtered data,
+        that can be iterated over.
+        Kwarg values may be a simple value (str, int)
+        or a function that returns a boolean.
 
         Note: When filtering both keys and values are **not** case sensitive.
         """
@@ -159,9 +183,13 @@ class SimpleRSTTable(BaseRSTDataObject):
 
     def exclude_by(self, **kwargs):
         """
+        Filter data to exclude items matching conditions.
+
         Given a set of key/value filters,
-        returns a new TableRead object without the matching data, that can be iterated over.
-        Kwarg values may be a simple value (str, int) or a function that returns a boolean.
+        returns a new TableRead object without the matching data,
+        that can be iterated over.
+        Kwarg values may be a simple value (str, int)
+        or a function that returns a boolean.
 
         Note: When filtering both keys and values are **not** case sensitive.
         """
@@ -169,6 +197,8 @@ class SimpleRSTTable(BaseRSTDataObject):
 
     def get_fields(self, *fields):
         """
+        Get only specified fields from data.
+
         Given a set of fields, returns a list of those field values from each entry.
         A single field will return a list of values,
         Multiple fields will return a list of tuples of values.
@@ -177,6 +207,8 @@ class SimpleRSTTable(BaseRSTDataObject):
 
 
 class SimpleRSTReader(BaseRSTDataObject):
+    """Represent all tables found in a RST file."""
+
     data_format = OrderedDict
 
     def __init__(self, rst_source):
@@ -184,8 +216,9 @@ class SimpleRSTReader(BaseRSTDataObject):
         Determine from where to parse RST content and then parse it.
 
         Args:
-            rst_source (str): The source of the RST content to parse. This can either be a
-                file path with a ``.rst`` extension, or a string containing the RST content.
+            rst_source (str): The source of the RST content to parse.
+                This can either be a file path with a ``.rst`` extension,
+                or a string containing the RST content.
         """
         super(SimpleRSTReader, self).__init__()
         rst_string = rst_source
@@ -202,6 +235,7 @@ class SimpleRSTReader(BaseRSTDataObject):
 
     @property
     def first(self):
+        """Return the first table found in the document."""
         return list(self.data.values())[0]
 
     def _is_header_underline(self, row):
@@ -251,7 +285,7 @@ class SimpleRSTReader(BaseRSTDataObject):
                 header, rows = self._get_header_and_rows(text_lines[i:])
                 table_name = self._table_name(section_header_cursor)
                 self.data[table_name] = SimpleRSTTable(text_lines[i], header, rows)
-                # The extra 4 rows 'skipped' are for the three divider rows and the header
+                # The extra 4 rows 'skipped' are for the 3 divider rows and the header
                 i += len(rows) + 4
             i += 1
 
@@ -274,4 +308,5 @@ class SimpleRSTReader(BaseRSTDataObject):
 
     @property
     def tables(self):
+        """Get the list of table names found in the document."""
         return list(self.data.keys())

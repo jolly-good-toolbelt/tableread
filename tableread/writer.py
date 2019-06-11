@@ -1,3 +1,4 @@
+"""Tableread module to write a text file from a Python object."""
 import os
 
 
@@ -35,7 +36,7 @@ class SimpleRSTTableWriteable(object):
 
     @property
     def divider(self):
-        """Formatted divider row as a spaced string."""
+        """Format divider row as a spaced string."""
         return "  ".join([self.divider_char * x for x in self.col_widths])
 
     def write_table(self, writer):
@@ -65,7 +66,7 @@ class SimpleRSTTableWriteable(object):
 
 
 class SimpleRSTWriter(object):
-    """Write a .rst file from a list of tables"""
+    """Write a .rst file from a list of tables."""
 
     def __init__(self, file_path, *tables):
         """Accept a list of table information and write to file.
