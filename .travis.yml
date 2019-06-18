@@ -5,5 +5,5 @@ install:
   - pip install poetry
   - ./env_setup.py
 script:
-  - ./self_test.py
+  - ./self_check.py
   - ./bin/build_docs.py
