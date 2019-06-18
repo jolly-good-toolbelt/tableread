@@ -1,9 +1,30 @@
 language: python
 python:
   - "3.6"
-install:
+
+stages:
+  - Tests
+  - Docs
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install graphviz
   - pip install poetry
+
+install:
+  - poetry config settings.virtualenvs.in-project true
   - ./env_setup.py
-script:
-  - ./self_check.py
-  - ./bin/build_docs.py
+
+cache:
+  paths:
+    - .venv
+  key: "${CI_COMMIT_REF_SLUG}"
+
+jobs:
+  include:
+    - stage: Tests
+      name: self-tests
+      script: ./self_check.py
+    - stage: Docs
+      name: build-docs
+      script: ./bin/build_docs.py
