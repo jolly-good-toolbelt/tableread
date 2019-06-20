@@ -10,10 +10,9 @@ before_install:
 install:
   - ./env_setup.py
 
-jobs:
-  include:
-    - script: ./self_check.py
-    - script: ./bin/build_docs.py
+script:
+  - ./self_check.py
+  - ./bin/build_docs.py
 
 before_deploy:
   - poetry config http-basic.pypi $PYPI_USER PYPI_PASS
