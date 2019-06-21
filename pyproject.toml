@@ -1,9 +1,13 @@
 [tool.poetry]
 name = "tableread"
-version = "2.0.1"
+version = "2.0.2"
 description = "Table reader for simple reStructuredText tables"
 authors = ["Brad Brown <brad@bradsbrown.com>"]
 license = "MIT"
+readme = "README.rst"
+homepage = "https://jolly-good-toolbelt.github.io/tableread/"
+documentation = "https://jolly-good-toolbelt.github.io/tableread/"
+repository = "https://github.com/jolly-good-toolbelt/tableread"
 
 [tool.poetry.dependencies]
 python = "^3.6"
