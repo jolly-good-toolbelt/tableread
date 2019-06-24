@@ -9,6 +9,18 @@ from operator import attrgetter
 import attr
 
 
+class InvalidFileException(Exception):
+    """Exception for improperly formatted files."""
+
+    pass
+
+
+class FileParsingException(Exception):
+    """Exception for parsing failures."""
+
+    pass
+
+
 def _safe_name(name):
     return name.replace(" ", "_").replace(".", "_").lower()
 
@@ -135,7 +147,8 @@ class SimpleRSTTable(BaseRSTDataObject):
         return self._is_divider_row(row)
 
     def _row_splitter(self, row):
-        assert self._column_spans, "Column spans not defined!"
+        if not self._column_spans:
+            raise FileParsingException("Column spans not defined!")
         # first, pad the row with spaces in case end columns are left empty
         row = "{row:{length}}".format(row=row, length=self._row_length)
         # then, find the columns in the row
@@ -161,8 +174,9 @@ class SimpleRSTTable(BaseRSTDataObject):
             row = row.split(" {} ".format(self.comment_char))[0]
             if row.count(self.column_divider_char) or len(self._column_spans) == 1:
                 row = self._row_splitter(row)
-                message = "Row '{}' does not match field list '{}' length."
-                assert len(row) == len(self.fields), message.format(row, self.fields)
+                if len(row) != len(self.fields):
+                    message = "Row '{}' does not match field list '{}' length."
+                    raise InvalidFileException(message.format(row, self.fields))
                 row_data = (
                     value if value else default
                     for default, value in zip(self.defaults, row)
@@ -235,11 +249,13 @@ class SimpleRSTReader(BaseRSTDataObject):
         if rst_source.lower().endswith(".rst"):
             rst_string = self._read_file(rst_source)
         self._parse(rst_string)
-        assert self.data, "No tables could be parsed from the RST source."
+        if not self.data:
+            raise InvalidFileException("No tables could be parsed from the RST source.")
 
     @staticmethod
     def _read_file(file_path):
-        assert os.path.exists(file_path), "File not found: {}".format(file_path)
+        if not os.path.exists(file_path):
+            raise FileNotFoundError("File not found: {}".format(file_path))
         with open(file_path, "r") as rst_fo:
             return rst_fo.read()
 
@@ -304,16 +320,18 @@ class SimpleRSTReader(BaseRSTDataObject):
         # find the header
         for i in range(len(text_lines)):
             if self._is_divider_row(text_lines[i]):
-                assert (
-                    text_lines[i] == text_lines[i + 2]
-                ), "Column divider rows do not match!"
+                if text_lines[i] != text_lines[i + 2]:
+                    raise InvalidFileException("Column divider rows do not match!")
                 header, rows = text_lines[i + 1], text_lines[i + 3 :]
                 break
         # truncate remaining rows to just table contents
-        for i in range(len(rows)):
-            if self._is_divider_row(rows[i]):
-                rows = rows[:i]
-                break
+        if rows:
+            for i in range(len(rows)):
+                if self._is_divider_row(rows[i]):
+                    rows = rows[:i]
+                    break
+        else:
+            raise InvalidFileException("Expected table rows could not be found!")
         return header, rows
 
     @property

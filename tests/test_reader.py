@@ -223,16 +223,16 @@ def test_overlined_section_header_table(reader, overlined_table_values):
 
 
 def test_non_existent_file_errors_appropriately():
-    with pytest.raises(AssertionError):
+    with pytest.raises(FileNotFoundError):
         tableread.SimpleRSTReader("./not/a/valid/path/to/file.rst")
 
 
 def test_empty_rst_source_string_gives_error():
-    with pytest.raises(AssertionError):
+    with pytest.raises(tableread.InvalidFileException):
         tableread.SimpleRSTReader("")
 
 
 def test_empty_rst_source_file_gives_error():
     tmp_file = tempfile.NamedTemporaryFile(suffix=".rst")
-    with pytest.raises(AssertionError):
+    with pytest.raises(tableread.InvalidFileException):
         tableread.SimpleRSTReader(tmp_file.name)
