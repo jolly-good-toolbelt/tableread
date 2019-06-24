@@ -2,11 +2,15 @@
 
 import os
 from collections import OrderedDict
-
 from itertools import filterfalse
 from operator import attrgetter
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import attr
+
+
+filepath = str
+tabletext = str
 
 
 class InvalidFileException(Exception):
@@ -21,17 +25,17 @@ class FileParsingException(Exception):
     pass
 
 
-def _safe_name(name):
+def _safe_name(name: str):
     return name.replace(" ", "_").replace(".", "_").lower()
 
 
-def get_specific_attr_matcher(key, value):
+def get_specific_attr_matcher(key: str, value: Any):
     """
     Check if a given attribute value matches the expected value.
 
     Args:
-        key (str): the name of the attribute to check
-        value (str): the expected string value
+        key: the name of the attribute to check
+        value: the expected string value
 
     Returns:
         function: a checker that will accept an object
@@ -41,14 +45,14 @@ def get_specific_attr_matcher(key, value):
     return lambda x: getattr(x, key).lower() == value.lower()
 
 
-def safe_list_index(a_list, index_value, default=None):
+def safe_list_index(a_list: list, index_value: int, default: Any = None):
     """
     Return the value at the given index, or a default if index does not exist.
 
     Args:
-        a_list (list): the list to be indexed
-        index_value (int): the desired index position from the list
-        default (any): the default value to return if the given index does not exist
+        a_list: the list to be indexed
+        index_value: the desired index position from the list
+        default: the default value to return if the given index does not exist
 
     Returns:
         any: the value at the list index position or the default
@@ -72,7 +76,7 @@ class BaseRSTDataObject(object):
     header_markers = set(r'!"#$%&\'()*+,-./:;<=>?@[]^_`{|}~')
     column_default_separator = "="
     comment_char = "#"
-    data_format = None
+    data_format: Optional[Any] = None
 
     def __init__(self):
         self.data = self.data_format()
@@ -86,11 +90,11 @@ class BaseRSTDataObject(object):
         for data in self.data:
             yield data
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any):
         """Get the value of the given key from the data."""
         return self.data[key]
 
-    def _is_divider_row(self, row):
+    def _is_divider_row(self, row: str):
         if not row.startswith(self.header_divider):
             return False
         return self.header_divider in row and set(row) <= {
@@ -105,16 +109,16 @@ class SimpleRSTTable(BaseRSTDataObject):
 
     data_format = list
 
-    def __init__(self, divider_row, header, rows):
+    def __init__(self, divider_row: str, header: str, rows: List[str]):
         """
         Build a table from the text string parts.
 
         Args:
-            divider_row (str): the row above or below the table headers,
+            divider_row: the row above or below the table headers,
                 consisting solely of "=" and spaces,
                 that delineates the column boundaries.
-            header (str): the column header row
-            rows (List[str]): the rows within the table containing data
+            header: the column header row
+            rows: the rows within the table containing data
         """
         super(SimpleRSTTable, self).__init__()
         self._header = header
@@ -124,16 +128,16 @@ class SimpleRSTTable(BaseRSTDataObject):
         self._build_data()
 
     @classmethod
-    def from_data(cls, data):
+    def from_data(cls, data: List[dict]):
         """Given data, build a SimpleRSTTable object."""
         table = cls.__new__(cls)
         table.data = list(data)
         return table
 
-    def _build_column_spans(self, divider_row):
+    def _build_column_spans(self, divider_row: str):
         # remove any trailing whitespace from the end of the row
         divider_row = divider_row.rstrip()
-        column_spans = []
+        column_spans: List[Tuple[int, Optional[int]]] = []
         start = 0
         next_break = divider_row.find(self.column_divider_char, start)
         while next_break != -1:
@@ -143,10 +147,10 @@ class SimpleRSTTable(BaseRSTDataObject):
         column_spans.append((start, None))
         return column_spans
 
-    def _stop_checker(self, row):
+    def _stop_checker(self, row: str):
         return self._is_divider_row(row)
 
-    def _row_splitter(self, row):
+    def _row_splitter(self, row: str):
         if not self._column_spans:
             raise FileParsingException("Column spans not defined!")
         # first, pad the row with spaces in case end columns are left empty
@@ -158,7 +162,7 @@ class SimpleRSTTable(BaseRSTDataObject):
             columns.append(column.strip().replace("..", ""))
         return columns
 
-    def _set_header_names_and_defaults(self, fields):
+    def _set_header_names_and_defaults(self, fields: List[str]):
         name_sets = [x.split(self.column_default_separator, 1) for x in fields]
         self.fields = [_safe_name(x[0].strip()) for x in name_sets]
         self.defaults = [x[1].strip() if len(x) > 1 else "" for x in name_sets]
@@ -183,7 +187,9 @@ class SimpleRSTTable(BaseRSTDataObject):
                 )
                 self.data.append(row_class(*row_data))
 
-    def _filter_data(self, data, filter_kwargs, filter_func):
+    def _filter_data(
+        self, data: List[dict], filter_kwargs: dict, filter_func: Callable
+    ):
         filters = [
             v if callable(v) else get_specific_attr_matcher(k, v)
             for k, v in filter_kwargs.items()
@@ -219,7 +225,7 @@ class SimpleRSTTable(BaseRSTDataObject):
         """
         return self._filter_data(self.data, kwargs, filterfalse)
 
-    def get_fields(self, *fields):
+    def get_fields(self, *fields: str):
         """
         Get only specified fields from data.
 
@@ -235,12 +241,12 @@ class SimpleRSTReader(BaseRSTDataObject):
 
     data_format = OrderedDict
 
-    def __init__(self, rst_source):
+    def __init__(self, rst_source: Union[filepath, tabletext]):
         """
         Determine from where to parse RST content and then parse it.
 
         Args:
-            rst_source (str): The source of the RST content to parse.
+            rst_source: The source of the RST content to parse.
                 This can either be a file path with a ``.rst`` extension,
                 or a string containing the RST content.
         """
@@ -253,7 +259,7 @@ class SimpleRSTReader(BaseRSTDataObject):
             raise InvalidFileException("No tables could be parsed from the RST source.")
 
     @staticmethod
-    def _read_file(file_path):
+    def _read_file(file_path: filepath):
         if not os.path.exists(file_path):
             raise FileNotFoundError("File not found: {}".format(file_path))
         with open(file_path, "r") as rst_fo:
@@ -264,10 +270,10 @@ class SimpleRSTReader(BaseRSTDataObject):
         """Return the first table found in the document."""
         return list(self.data.values())[0]
 
-    def _is_header_underline(self, row):
+    def _is_header_underline(self, row: str):
         return any((set(row) == set(x) for x in self.header_markers))
 
-    def _name_if_header(self, four_rows):
+    def _name_if_header(self, four_rows: List[str]):
         above, header, below, tail = four_rows
         # Row below potential section header must be an underline row
         if not self._is_header_underline(below):
@@ -281,7 +287,7 @@ class SimpleRSTReader(BaseRSTDataObject):
             return None
         return header
 
-    def _table_name(self, section_header):
+    def _table_name(self, section_header: Optional[str]):
         section_header = section_header or "Default"
         if section_header not in self.data.keys():
             return section_header
@@ -292,7 +298,7 @@ class SimpleRSTReader(BaseRSTDataObject):
                 return name
             name_number += 1
 
-    def _parse(self, rst_string):
+    def _parse(self, rst_string: tabletext):
         text_lines = rst_string.split("\n")
         section_header_cursor = None
         i = 0
@@ -315,7 +321,7 @@ class SimpleRSTReader(BaseRSTDataObject):
                 i += len(rows) + 4
             i += 1
 
-    def _get_header_and_rows(self, text_lines):
+    def _get_header_and_rows(self, text_lines: List[str]):
         header, rows = None, None
         # find the header
         for i in range(len(text_lines)):
