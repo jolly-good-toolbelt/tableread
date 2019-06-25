@@ -26,5 +26,3 @@ deploy:
   provider: script
   script: ghp-import -p docs/ && poetry publish
   skip_cleanup: true
-  on:
-    condition: type = push
