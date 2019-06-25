@@ -9,8 +9,8 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 import attr
 
 
-filepath = str
-tabletext = str
+FilePath = str
+FileContents = str
 
 
 class InvalidFileException(Exception):
@@ -29,7 +29,7 @@ def _safe_name(name: str):
     return name.replace(" ", "_").replace(".", "_").lower()
 
 
-def get_specific_attr_matcher(key: str, value: Any):
+def get_specific_attr_matcher(key: str, value: str):
     """
     Check if a given attribute value matches the expected value.
 
@@ -76,7 +76,7 @@ class BaseRSTDataObject(object):
     header_markers = set(r'!"#$%&\'()*+,-./:;<=>?@[]^_`{|}~')
     column_default_separator = "="
     comment_char = "#"
-    data_format: Optional[Any] = None
+    data_format: Any = None
 
     def __init__(self):
         self.data = self.data_format()
@@ -90,7 +90,7 @@ class BaseRSTDataObject(object):
         for data in self.data:
             yield data
 
-    def __getitem__(self, key: Any):
+    def __getitem__(self, key: Union[str, int]):
         """Get the value of the given key from the data."""
         return self.data[key]
 
@@ -241,7 +241,7 @@ class SimpleRSTReader(BaseRSTDataObject):
 
     data_format = OrderedDict
 
-    def __init__(self, rst_source: Union[filepath, tabletext]):
+    def __init__(self, rst_source: Union[FilePath, FileContents]):
         """
         Determine from where to parse RST content and then parse it.
 
@@ -259,7 +259,7 @@ class SimpleRSTReader(BaseRSTDataObject):
             raise InvalidFileException("No tables could be parsed from the RST source.")
 
     @staticmethod
-    def _read_file(file_path: filepath):
+    def _read_file(file_path: FilePath):
         if not os.path.exists(file_path):
             raise FileNotFoundError("File not found: {}".format(file_path))
         with open(file_path, "r") as rst_fo:
@@ -298,7 +298,7 @@ class SimpleRSTReader(BaseRSTDataObject):
                 return name
             name_number += 1
 
-    def _parse(self, rst_string: tabletext):
+    def _parse(self, rst_string: FileContents):
         text_lines = rst_string.split("\n")
         section_header_cursor = None
         i = 0
