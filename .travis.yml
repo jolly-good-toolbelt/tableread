@@ -23,6 +23,9 @@ before_deploy:
   - poetry build
 
 deploy:
-  provider: script
-  script: ghp-import -p docs/ && poetry publish
-  skip_cleanup: true
+  - provider: script
+    script: ghp-import -p docs/
+    skip_cleanup: true
+  - provider: script
+    script: poetry publish
+    skip_cleanup: true
