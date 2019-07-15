@@ -4,9 +4,6 @@ TableRead
 TableRead is a script designed to read reStructredText (reST) `simple tables`_ from a file and convert them into Python objects.
 
 
-.. inheritance-diagram:: tableread
-   :parts: 1
-
 Quickstart
 ----------
 
