@@ -23,9 +23,10 @@ before_deploy:
   - poetry build
 
 deploy:
-  - provider: script
-    script: ghp-import -p docs/
+  - provider: pages
     skip_cleanup: true
+    github_token: $GH_TOKEN
+    local_dir: docs/
   - provider: script
     script: poetry publish
     skip_cleanup: true
