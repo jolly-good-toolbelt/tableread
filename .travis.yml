@@ -12,7 +12,7 @@ before_install:
   - pip install poetry
 
 install:
-  - ./env_setup.sh
+  - ./bootstrap.sh
 
 script:
   - self-check
