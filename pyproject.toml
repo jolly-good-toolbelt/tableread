@@ -28,6 +28,7 @@ flake8-docstrings = "*"
 flake8-quotes = "*"
 pep8-naming = "*"
 sphinx-autodoc-typehints = "^1.6"
+jgt_tools = "^0.1.2"
 
 [build-system]
 requires = ["poetry>=0.12"]
