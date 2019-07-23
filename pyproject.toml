@@ -16,7 +16,6 @@ attrs = ">=16.0.0"
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
 pre-commit = "^1.15"
-tomlkit = "^0.5.3"
 flake8 = "^3.7"
 flake8-builtins = "*"
 flake8-comprehensions = "*"
