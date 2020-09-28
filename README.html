@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>TableRead &mdash; tableread - Table reader for simple reStructuredText tables 2.0.5 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> tableread - Table reader for simple reStructuredText tables
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="tableread.html">tableread package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tableread.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tableread.html#module-tableread.writer">tableread.writer module</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MAINTAINER.html">Maintainer’s Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="MAINTAINER.html#top-level-scripts">Top-level scripts:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MAINTAINER.html#jgt-tools-scripts">JGT Tools scripts:</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tableread - Table reader for simple reStructuredText tables</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>TableRead</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/README.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tableread">
+<h1>TableRead<a class="headerlink" href="#tableread" title="Permalink to this headline">¶</a></h1>
+<p>TableRead is a script designed to read reStructredText (reST) <a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables">simple tables</a> from a file and convert them into Python objects.</p>
+<div class="section" id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<p>Say you have a simple table like this located in a <code class="docutils literal notranslate"><span class="pre">./example.rst</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">++++++++++++</span>
+<span class="n">Damage</span> <span class="n">Doers</span>
+<span class="o">++++++++++++</span>
+
+<span class="o">======</span>  <span class="o">===</span>  <span class="o">==============</span>
+<span class="n">Name</span>    <span class="n">Age</span>  <span class="n">Favorite</span> <span class="n">Color</span>
+<span class="o">======</span>  <span class="o">===</span>  <span class="o">==============</span>
+<span class="n">Mookie</span>  <span class="mi">26</span>   <span class="n">Red</span>
+<span class="n">Andrew</span>  <span class="mi">24</span>   <span class="n">Red</span>
+<span class="n">JD</span>      <span class="mi">31</span>   <span class="n">Red</span>
+<span class="n">Xander</span>  <span class="mi">26</span>   <span class="n">Red</span>
+<span class="o">======</span>  <span class="o">===</span>  <span class="o">==============</span>
+</pre></div>
+</div>
+<p>Here are a few useful things you can do with that table:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tableread</span> <span class="kn">import</span> <span class="n">SimpleRSTReader</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span> <span class="o">=</span> <span class="n">SimpleRSTReader</span><span class="p">(</span><span class="s2">&quot;./example.rst&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span><span class="o">.</span><span class="n">tables</span>
+<span class="go">[&#39;Damage Doers&#39;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">reader</span><span class="p">[</span><span class="s2">&quot;Damage Doers&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span><span class="o">.</span><span class="n">fields</span>
+<span class="go">[&#39;name&#39;, &#39;age&#39;, &#39;favorite_color&#39;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">favorite_color</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">Red</span>
+<span class="go">Red</span>
+<span class="go">Red</span>
+<span class="go">Red</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">matches_all</span><span class="p">(</span><span class="n">age</span><span class="o">=</span><span class="s2">&quot;26&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">Mookie</span>
+<span class="go">Xander</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">exclude_by</span><span class="p">(</span><span class="n">age</span><span class="o">=</span><span class="s2">&quot;26&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">Andrew</span>
+<span class="go">JD</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="class-tableread-simplerstreader-file-path">
+<h3><code class="docutils literal notranslate"><span class="pre">class</span> <span class="pre">tableread.SimpleRSTReader(file_path)</span></code><a class="headerlink" href="#class-tableread-simplerstreader-file-path" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Parse a reStructredText file, <code class="docutils literal notranslate"><span class="pre">file_path</span></code>, and convert any simple tables into <code class="docutils literal notranslate"><span class="pre">SimpleRSTTable</span></code> objects.
+Individual tables can be accessed using the table name as the key (<code class="docutils literal notranslate"><span class="pre">SimpleRSTReader['table_name']</span></code>)</p>
+</div></blockquote>
+<dl class="simple">
+<dt><strong>data</strong></dt><dd><p>An OrderedDict of the table(s) found in the reST file. The key is either the
+section header before the table name from the file, or <code class="docutils literal notranslate"><span class="pre">Default</span></code> for tables not under a header.
+For multiple tables in a section (or multiple <code class="docutils literal notranslate"><span class="pre">Default</span></code> tables),
+subsequent tables will have a incrementing number appended to the key: <code class="docutils literal notranslate"><span class="pre">Default</span></code>, <code class="docutils literal notranslate"><span class="pre">Default_2</span></code>, etc.
+The value is a <code class="docutils literal notranslate"><span class="pre">SimpleRSTTable</span></code> object.</p>
+</dd>
+<dt><strong>tables</strong></dt><dd><p>A list of the table names; an alias for <code class="docutils literal notranslate"><span class="pre">list(data.keys())</span></code></p>
+</dd>
+<dt><strong>first</strong></dt><dd><p>A helper to get the first table found in the file; an alias for
+<code class="docutils literal notranslate"><span class="pre">list(self.data.values())[0]</span></code></p>
+</dd>
+</dl>
+</div>
+<div class="section" id="class-tableread-simplersttable-header-rows-column-spans">
+<h3><code class="docutils literal notranslate"><span class="pre">class</span> <span class="pre">tableread.SimpleRSTTable(header,</span> <span class="pre">rows,</span> <span class="pre">column_spans)</span></code><a class="headerlink" href="#class-tableread-simplersttable-header-rows-column-spans" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>A representation of an individual table. In addition to the methods below,
+you may iterate over the table itself as a shortcut (<code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">entry</span> <span class="pre">in</span> <span class="pre">table:</span></code>),
+which will yield from <code class="docutils literal notranslate"><span class="pre">table.data</span></code>.
+<code class="docutils literal notranslate"><span class="pre">len(table)</span></code> will also return the number of entries in <code class="docutils literal notranslate"><span class="pre">table.data</span></code>.</p>
+</div></blockquote>
+<dl>
+<dt><strong>data</strong></dt><dd><p>A list of namedtuples with <code class="docutils literal notranslate"><span class="pre">fields</span></code> as the names.</p>
+</dd>
+<dt><strong>fields</strong></dt><dd><p>A tuple of the table fields, as used in the <code class="docutils literal notranslate"><span class="pre">data</span></code> namedtuple.
+Field names are adapted from table columns by lower-casing,
+and replacing spaces and periods with underscores.</p>
+</dd>
+<dt><strong>from_data(data)</strong></dt><dd><p>A helper function to create an object with. Expects a prepared list of namedtuples.</p>
+</dd>
+<dt><strong>matches_all(**kwargs)</strong></dt><dd><p>Given a set of key/value filters, returns a new TableRead object with only
+the filtered data, that can be iterated over.
+Values may be either a simple value (str, int) or a function that returns a boolean.
+See <a class="reference internal" href="#quickstart">Quickstart</a> for an example.</p>
+<p>Note: When filtering both keys and values are <strong>not</strong> case sensitive.</p>
+</dd>
+<dt><strong>exclude_by(**kwargs)</strong></dt><dd><p>Given a set of key/value filters, returns a new TableRead object without the
+matching data, that can be iterated over.
+Values may be either a simple value (str, int) or a function that returns a boolean.
+See <a class="reference internal" href="#quickstart">Quickstart</a> for an example.</p>
+<p>Note: When filtering both keys and values are <strong>not</strong> case sensitive.</p>
+</dd>
+<dt><strong>get_fields(*fields)</strong></dt><dd><p>Given a list of fields, return a list of only the values associated with those fields.
+A single field returns a list of values, multiple fields returns a list of value tuples.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Brad Brown
+      <span class="build">
+        
+        Build
+        <a href="https://github.com/jolly-good-toolbelt/tableread/tree/c5641577f7f6957ed0744689df8e2d5ea7cf5044">c5641577f7f6957ed0744689df8e2d5ea7cf5044</a>.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

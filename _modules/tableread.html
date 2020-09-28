@@ -1,0 +1,564 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tableread &mdash; tableread - Table reader for simple reStructuredText tables 2.0.5 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> tableread - Table reader for simple reStructuredText tables
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../tableread.html">tableread package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tableread.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tableread.html#module-tableread.writer">tableread.writer module</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MAINTAINER.html">Maintainer’s Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../MAINTAINER.html#top-level-scripts">Top-level scripts:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MAINTAINER.html#jgt-tools-scripts">JGT Tools scripts:</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tableread - Table reader for simple reStructuredText tables</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>tableread</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tableread</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Tableread package to read a text file table into a Python object.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">filterfalse</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">attrgetter</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">attr</span>
+
+
+<span class="n">FilePath</span> <span class="o">=</span> <span class="nb">str</span>
+<span class="n">FileContents</span> <span class="o">=</span> <span class="nb">str</span>
+
+
+<div class="viewcode-block" id="InvalidFileException"><a class="viewcode-back" href="../tableread.html#tableread.InvalidFileException">[docs]</a><span class="k">class</span> <span class="nc">InvalidFileException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception for improperly formatted files.&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="FileParsingException"><a class="viewcode-back" href="../tableread.html#tableread.FileParsingException">[docs]</a><span class="k">class</span> <span class="nc">FileParsingException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception for parsing failures.&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+<span class="k">def</span> <span class="nf">_safe_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="get_specific_attr_matcher"><a class="viewcode-back" href="../tableread.html#tableread.get_specific_attr_matcher">[docs]</a><span class="k">def</span> <span class="nf">get_specific_attr_matcher</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if a given attribute value matches the expected value.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        key: the name of the attribute to check</span>
+<span class="sd">        value: the expected string value</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        function: a checker that will accept an object</span>
+<span class="sd">        and return True if the attribute value matches, or False if not.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="safe_list_index"><a class="viewcode-back" href="../tableread.html#tableread.safe_list_index">[docs]</a><span class="k">def</span> <span class="nf">safe_list_index</span><span class="p">(</span><span class="n">a_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">index_value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the value at the given index, or a default if index does not exist.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        a_list: the list to be indexed</span>
+<span class="sd">        index_value: the desired index position from the list</span>
+<span class="sd">        default: the default value to return if the given index does not exist</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        any: the value at the list index position or the default</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">index_value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">a_list</span><span class="p">[</span><span class="n">index_value</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span></div>
+
+
+<div class="viewcode-block" id="BaseRSTDataObject"><a class="viewcode-back" href="../tableread.html#tableread.BaseRSTDataObject">[docs]</a><span class="k">class</span> <span class="nc">BaseRSTDataObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base Class for RST Table Data handling.&quot;&quot;&quot;</span>
+
+    <span class="n">column_divider_char</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+    <span class="n">header_divider</span> <span class="o">=</span> <span class="s2">&quot;=&quot;</span>
+    <span class="c1"># The full set of potential ReStructuredText section markers is sourced from</span>
+    <span class="c1"># http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#sections</span>
+    <span class="n">header_markers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;!&quot;#$%&amp;</span><span class="se">\&#39;</span><span class="s1">()*+,-./:;&lt;=&gt;?@[]^_`{|}~&#39;</span><span class="p">)</span>
+    <span class="n">column_default_separator</span> <span class="o">=</span> <span class="s2">&quot;=&quot;</span>
+    <span class="n">comment_char</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span>
+    <span class="n">data_format</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_format</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the length of the underlying data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Iterate over underlying data.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">data</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Get the value of the given key from the data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_is_divider_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header_divider</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">header_divider</span> <span class="ow">in</span> <span class="n">row</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">column_divider_char</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">header_divider</span><span class="p">,</span>
+            <span class="s2">&quot; &quot;</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="SimpleRSTTable"><a class="viewcode-back" href="../tableread.html#tableread.SimpleRSTTable">[docs]</a><span class="k">class</span> <span class="nc">SimpleRSTTable</span><span class="p">(</span><span class="n">BaseRSTDataObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represent a single table from a RST file.&quot;&quot;&quot;</span>
+
+    <span class="n">data_format</span> <span class="o">=</span> <span class="nb">list</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">divider_row</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">header</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rows</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a table from the text string parts.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            divider_row: the row above or below the table headers,</span>
+<span class="sd">                consisting solely of &quot;=&quot; and spaces,</span>
+<span class="sd">                that delineates the column boundaries.</span>
+<span class="sd">            header: the column header row</span>
+<span class="sd">            rows: the rows within the table containing data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SimpleRSTTable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_header</span> <span class="o">=</span> <span class="n">header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span> <span class="o">=</span> <span class="n">rows</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_column_spans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_column_spans</span><span class="p">(</span><span class="n">divider_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_row_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">divider_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_data</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SimpleRSTTable.from_data"><a class="viewcode-back" href="../tableread.html#tableread.SimpleRSTTable.from_data">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_data</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Given data, build a SimpleRSTTable object.&quot;&quot;&quot;</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">table</span></div>
+
+    <span class="k">def</span> <span class="nf">_build_column_spans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">divider_row</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># remove any trailing whitespace from the end of the row</span>
+        <span class="n">divider_row</span> <span class="o">=</span> <span class="n">divider_row</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+        <span class="n">column_spans</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">next_break</span> <span class="o">=</span> <span class="n">divider_row</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">column_divider_char</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">next_break</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">column_spans</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">next_break</span><span class="p">))</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">divider_row</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header_divider</span><span class="p">,</span> <span class="n">next_break</span><span class="p">)</span>
+            <span class="n">next_break</span> <span class="o">=</span> <span class="n">divider_row</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">column_divider_char</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+        <span class="n">column_spans</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">column_spans</span>
+
+    <span class="k">def</span> <span class="nf">_stop_checker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_divider_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_row_splitter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_column_spans</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FileParsingException</span><span class="p">(</span><span class="s2">&quot;Column spans not defined!&quot;</span><span class="p">)</span>
+        <span class="c1"># first, pad the row with spaces in case end columns are left empty</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="s2">&quot;{row:</span><span class="si">{length}</span><span class="s2">}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_row_length</span><span class="p">)</span>
+        <span class="c1"># then, find the columns in the row</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">col_start</span><span class="p">,</span> <span class="n">col_stop</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_column_spans</span><span class="p">:</span>
+            <span class="n">column</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">col_start</span><span class="p">:</span><span class="n">col_stop</span><span class="p">]</span>
+            <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">columns</span>
+
+    <span class="k">def</span> <span class="nf">_set_header_names_and_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="n">name_sets</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">column_default_separator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">_safe_name</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">name_sets</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">name_sets</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_build_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_header_names_and_defaults</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_row_splitter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="p">))</span>
+        <span class="n">row_class</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">make_class</span><span class="p">(</span><span class="s2">&quot;Row&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_checker</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TabError</span><span class="p">(</span><span class="s2">&quot;Tabs are not supported in tables - use spaces only!&quot;</span><span class="p">)</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">{}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comment_char</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">column_divider_char</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_column_spans</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_row_splitter</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">):</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Row &#39;</span><span class="si">{}</span><span class="s2">&#39; does not match field list &#39;</span><span class="si">{}</span><span class="s2">&#39; length.&quot;</span>
+                    <span class="k">raise</span> <span class="n">InvalidFileException</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">))</span>
+                <span class="n">row_data</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">value</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="n">default</span>
+                    <span class="k">for</span> <span class="n">default</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row_class</span><span class="p">(</span><span class="o">*</span><span class="n">row_data</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_filter_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">filter_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">filter_func</span><span class="p">:</span> <span class="n">Callable</span>
+    <span class="p">):</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">v</span> <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">else</span> <span class="n">get_specific_attr_matcher</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">filter_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">filter_func</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">all</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">),</span> <span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SimpleRSTTable.matches_all"><a class="viewcode-back" href="../tableread.html#tableread.SimpleRSTTable.matches_all">[docs]</a>    <span class="k">def</span> <span class="nf">matches_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filter data for a positive match to conditions.</span>
+
+<span class="sd">        Given a set of key/value filters,</span>
+<span class="sd">        returns a new TableRead object with the filtered data,</span>
+<span class="sd">        that can be iterated over.</span>
+<span class="sd">        Kwarg values may be a simple value (str, int)</span>
+<span class="sd">        or a function that returns a boolean.</span>
+
+<span class="sd">        Note: When filtering both keys and values are **not** case sensitive.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="nb">filter</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimpleRSTTable.exclude_by"><a class="viewcode-back" href="../tableread.html#tableread.SimpleRSTTable.exclude_by">[docs]</a>    <span class="k">def</span> <span class="nf">exclude_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filter data to exclude items matching conditions.</span>
+
+<span class="sd">        Given a set of key/value filters,</span>
+<span class="sd">        returns a new TableRead object without the matching data,</span>
+<span class="sd">        that can be iterated over.</span>
+<span class="sd">        Kwarg values may be a simple value (str, int)</span>
+<span class="sd">        or a function that returns a boolean.</span>
+
+<span class="sd">        Note: When filtering both keys and values are **not** case sensitive.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">filterfalse</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimpleRSTTable.get_fields"><a class="viewcode-back" href="../tableread.html#tableread.SimpleRSTTable.get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get only specified fields from data.</span>
+
+<span class="sd">        Given a set of fields, returns a list of those field values from each entry.</span>
+<span class="sd">        A single field will return a list of values,</span>
+<span class="sd">        Multiple fields will return a list of tuples of values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">attrgetter</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="SimpleRSTReader"><a class="viewcode-back" href="../tableread.html#tableread.SimpleRSTReader">[docs]</a><span class="k">class</span> <span class="nc">SimpleRSTReader</span><span class="p">(</span><span class="n">BaseRSTDataObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represent all tables found in a RST file.&quot;&quot;&quot;</span>
+
+    <span class="n">data_format</span> <span class="o">=</span> <span class="n">OrderedDict</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rst_source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">FilePath</span><span class="p">,</span> <span class="n">FileContents</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine from where to parse RST content and then parse it.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rst_source: The source of the RST content to parse.</span>
+<span class="sd">                This can either be a file path with a ``.rst`` extension,</span>
+<span class="sd">                or a string containing the RST content.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SimpleRSTReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">rst_string</span> <span class="o">=</span> <span class="n">rst_source</span>
+        <span class="k">if</span> <span class="n">rst_source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.rst&quot;</span><span class="p">):</span>
+            <span class="n">rst_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_file</span><span class="p">(</span><span class="n">rst_source</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">(</span><span class="n">rst_string</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidFileException</span><span class="p">(</span><span class="s2">&quot;No tables could be parsed from the RST source.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_read_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">FilePath</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;File not found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rst_fo</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rst_fo</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">first</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the first table found in the document.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_is_header_underline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">((</span><span class="nb">set</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">header_markers</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_name_if_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">four_rows</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="n">above</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">below</span><span class="p">,</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">four_rows</span>
+        <span class="c1"># Row below potential section header must be an underline row</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_header_underline</span><span class="p">(</span><span class="n">below</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># Row above should be an matching overline or empty</span>
+        <span class="k">if</span> <span class="n">above</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">above</span> <span class="o">==</span> <span class="n">below</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># the line below the underline should be empty</span>
+        <span class="c1"># (this condition ensures we don&#39;t take a table header as a section name)</span>
+        <span class="k">if</span> <span class="n">tail</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">header</span>
+
+    <span class="k">def</span> <span class="nf">_table_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section_header</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="n">section_header</span> <span class="o">=</span> <span class="n">section_header</span> <span class="ow">or</span> <span class="s2">&quot;Default&quot;</span>
+        <span class="k">if</span> <span class="n">section_header</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">section_header</span>
+        <span class="n">name_number</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">section_header</span><span class="p">,</span> <span class="n">name_number</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">name</span>
+            <span class="n">name_number</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rst_string</span><span class="p">:</span> <span class="n">FileContents</span><span class="p">):</span>
+        <span class="n">text_lines</span> <span class="o">=</span> <span class="n">rst_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section_header_cursor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">sliding_window</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">safe_list_index</span><span class="p">(</span><span class="n">text_lines</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">header_check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name_if_header</span><span class="p">(</span><span class="n">sliding_window</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">header_check</span><span class="p">:</span>
+                <span class="n">section_header_cursor</span> <span class="o">=</span> <span class="n">header_check</span>
+                <span class="c1"># skip past the section header AND the underline row</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_divider_row</span><span class="p">(</span><span class="n">text_lines</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="n">header</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_header_and_rows</span><span class="p">(</span><span class="n">text_lines</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
+                <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table_name</span><span class="p">(</span><span class="n">section_header_cursor</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">SimpleRSTTable</span><span class="p">(</span><span class="n">text_lines</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">header</span><span class="p">,</span> <span class="n">rows</span><span class="p">)</span>
+                <span class="c1"># The extra 4 rows &#39;skipped&#39; are for the 3 divider rows and the header</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_get_header_and_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text_lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="n">header</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="c1"># find the header</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text_lines</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_divider_row</span><span class="p">(</span><span class="n">text_lines</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">text_lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">text_lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="n">InvalidFileException</span><span class="p">(</span><span class="s2">&quot;Column divider rows do not match!&quot;</span><span class="p">)</span>
+                <span class="n">header</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="n">text_lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">text_lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:]</span>
+                <span class="k">break</span>
+        <span class="c1"># truncate remaining rows to just table contents</span>
+        <span class="k">if</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_divider_row</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidFileException</span><span class="p">(</span><span class="s2">&quot;Expected table rows could not be found!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">header</span><span class="p">,</span> <span class="n">rows</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the list of table names found in the document.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Brad Brown
+      <span class="build">
+        
+        Build
+        <a href="https://github.com/jolly-good-toolbelt/tableread/tree/c5641577f7f6957ed0744689df8e2d5ea7cf5044">c5641577f7f6957ed0744689df8e2d5ea7cf5044</a>.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
