@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tableread"
-version = "2.0.4"
+version = "2.0.5"
 description = "Table reader for simple reStructuredText tables"
 authors = ["Brad Brown <brad@bradsbrown.com>"]
 license = "MIT"
@@ -14,16 +14,8 @@ python = "^3.6"
 attrs = ">=16.0.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^4.6"
-pre-commit = "^1.15"
-flake8 = "^3.7"
-flake8-builtins = "*"
-flake8-comprehensions = "*"
-flake8-docstrings = "*"
-flake8-quotes = "*"
-pep8-naming = "*"
 sphinx-autodoc-typehints = "^1.6"
-jgt_tools = {version = "^0.2.3", extras = ["build_docs"]}
+jgt_tools = "^0.4.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
